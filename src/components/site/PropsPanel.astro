@@ -1,0 +1,117 @@
+---
+import { Label } from '@/components/ui/label';
+import type { ComponentProp } from './types';
+
+interface Props {
+  propsList: ComponentProp[];
+  slug: string;
+}
+
+const { propsList, slug } = Astro.props;
+---
+
+<div>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {propsList.map(prop => (
+      <div class="space-y-1">
+        <Label htmlFor={`prop-${prop.name}`} className="block text-sm font-medium">
+          {prop.name}{prop.isOptional ? ' (optional)' : ''}
+        </Label>
+        {prop.type === 'boolean' ? (
+          <div class="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id={`prop-${prop.name}`}
+              data-prop-name={prop.name}
+              data-prop-type={prop.type}
+              class="w-4 h-4 rounded-sm bg-card border border-input"
+              checked={prop.defaultValue === true}
+            />
+          </div>
+        ) : (
+          <input
+            id={`prop-${prop.name}`}
+            type="text"
+            data-prop-name={prop.name}
+            data-prop-type={prop.type}
+            class="w-full px-3 py-2 rounded-md bg-card border border-input"
+            placeholder={`Enter ${prop.type}`}
+            value={prop.defaultValue !== undefined ? prop.defaultValue : ''}
+          />
+        )}
+      </div>
+    ))}
+
+    {propsList.length === 0 && (
+      <div class="col-span-full">
+        <p class="text-sm text-muted-foreground italic">No configurable props available</p>
+      </div>
+    )}
+  </div>
+</div>
+
+<script is:inline define:vars={{ slug }}>
+
+  function setupPropInputs() {
+    if (!window.propUpdateHandlers) {
+      window.propUpdateHandlers = new Map();
+    }
+
+    const propInputs = document.querySelectorAll('[data-prop-name]');
+
+    function updateComponent() {
+      const props = {};
+      document.querySelectorAll('[data-prop-name]').forEach(input => {
+        if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) {
+          const propName = input.getAttribute('data-prop-name');
+          const propType = input.getAttribute('data-prop-type');
+
+          if (propName) {
+            if (input.type === 'checkbox') {
+              props[propName] = input.checked;
+            } else if (propType === 'number') {
+              props[propName] = input.value ? Number(input.value) : undefined;
+            } else {
+              props[propName] = input.value;
+            }
+          }
+        }
+      });
+
+      if (typeof window.updateComponentWithProps === 'function') {
+        window.updateComponentWithProps(props);
+      } else {
+        console.warn('Component update function not found, falling back to page reload');
+        window.location.reload();
+      }
+    }
+
+    window.propUpdateHandlers.set('update-component', updateComponent);
+
+    propInputs.forEach(input => {
+      if (input instanceof HTMLElement) {
+        const oldChangeHandler = window.propUpdateHandlers.get('update-component');
+        if (oldChangeHandler) {
+          input.removeEventListener('change', oldChangeHandler);
+          input.removeEventListener('input', oldChangeHandler);
+        }
+
+        input.addEventListener('change', updateComponent);
+        input.addEventListener('input', updateComponent);
+      }
+    });
+  }
+
+  setupPropInputs();
+
+  document.addEventListener('astro:page-load', () => {
+    setupPropInputs();
+  });
+
+  document.addEventListener('astro:before-preparation', () => {
+    if (window.location.pathname.includes('/components/')) {
+      sessionStorage.removeItem(`component-props-${slug}`);
+    }
+  });
+
+</script>

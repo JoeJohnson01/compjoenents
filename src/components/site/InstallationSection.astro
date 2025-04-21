@@ -1,0 +1,17 @@
+---
+import CodePreview from './CodePreview.astro';
+
+interface Props {
+  installCommand: string;
+}
+
+const { installCommand } = Astro.props;
+---
+
+<div class="mb-8">
+  <CodePreview
+    code={installCommand}
+    language="bash"
+    title="Install Command"
+  />
+</div>

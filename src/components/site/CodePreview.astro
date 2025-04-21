@@ -1,0 +1,75 @@
+---
+interface Props {
+  code: string;
+  language?: string;
+  title?: string;
+  showCopyButton?: boolean;
+}
+
+const {
+  code,
+  language = "typescript",
+  title = "",
+  showCopyButton = true
+} = Astro.props;
+
+const id = `code-block-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div class="code-preview relative mb-4">
+  <div class="relative">
+    <pre class="rounded-md"><code id={id} class={`!text-sm language-${language}`}>{code}</code></pre>
+    {showCopyButton && (
+      <button
+        class="copy-button absolute top-3 right-3 p-2 bg-background border border-border rounded-md hover:opacity-80 "
+        aria-label="Copy to clipboard"
+        data-code={code}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+    )}
+  </div>
+</div>
+
+<script is:inline>
+  if (!window.copyButtonHandlers) {
+    window.copyButtonHandlers = new Map();
+  }
+
+  function setupCopyButtons() {
+    const copyButtons = document.querySelectorAll('.copy-button');
+
+    copyButtons.forEach((button, index) => {
+      if (button instanceof HTMLElement) {
+        const buttonId = `copy-button-${index}`;
+        const oldHandler = window.copyButtonHandlers.get(buttonId);
+        if (oldHandler) {
+          button.removeEventListener('click', oldHandler);
+        }
+
+        function handleCopyClick() {
+          const code = button.getAttribute('data-code') || '';
+          navigator.clipboard.writeText(code);
+
+          button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>`;
+
+          setTimeout(() => {
+            button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+          }, 2000);
+        }
+
+        window.copyButtonHandlers.set(buttonId, handleCopyClick);
+
+        button.addEventListener('click', handleCopyClick);
+      }
+    });
+  }
+
+  setupCopyButtons();
+
+  document.addEventListener('astro:page-load', setupCopyButtons);
+</script>
+

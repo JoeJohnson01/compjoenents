@@ -1,16 +1,19 @@
 ---
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import ComponentRenderer from "../components/site/ComponentRenderer.astro";
 
+const components = await getCollection("components");
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Components">
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 relative">
+    {components.map((c) => (
+      <a href={`/components/${c.slug}`} class="h-fit w-full cursor-pointer relative">
+        <div class="pointer-events-none">
+        <ComponentRenderer component={c} showLang={true}/>
+        </div>
+      </a>
+    ))}
+  </div>
+</Layout>

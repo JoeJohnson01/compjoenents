@@ -1,0 +1,81 @@
+---
+title: Flow Diagram
+description: A responsive flow diagram component for visualizing processes and workflows
+defaultProps:
+  nodes:
+    {
+      graph:
+        [
+          "Start Process",
+          "Initial Setup",
+          "Data Validation",
+          [
+            [
+              "Task A1",
+              [["SubTask A2.1"], ["SubTask A2.2", "SubTask A2.3"]],
+              "Task A3",
+            ],
+            ["Task B1"],
+            ["Task C1", "Task C2"],
+          ],
+        ],
+    }
+language: react
+type: registry:component
+files:
+  - path: "src/components/flow-diagram.tsx"
+    type: registry:component
+dependencies: []
+categories: ["charts", "diagrams"]
+---
+
+import SplitPreview from "@/components/site/SplitPreview.astro";
+import CodePreview from "@/components/site/CodePreview.astro";
+import DocumentationBasicFlowDiagram from "@/demos/flow-diagram/documentation-basic.tsx";
+import DocumentationBasicFlowDiagramSrc from "@/demos/flow-diagram/documentation-basic.tsx?raw";
+import DocumentationCustomFlowDiagram from "@/demos/flow-diagram/documentation-custom.tsx";
+import DocumentationCustomFlowDiagramSrc from "@/demos/flow-diagram/documentation-custom.tsx?raw";
+import DataStructureSrc from "@/demos/data-structure.ts?raw";
+
+## Features
+
+- **Linear Flows**: Create simple sequential processes
+- **Parallel Branches**: Split flows into multiple parallel paths
+- **Nested Forks**: Create complex nested branch structures
+- **Custom Node Content**: Add React components inside nodes
+- **Automatic Layout**: Handles spacing and connections automatically
+- **Responsive Design**: Adapts to different screen sizes
+
+## Data Structure
+
+The Flow Diagram component uses a structured data format to define nodes and their relationships:
+
+<CodePreview
+  code={DataStructureSrc}
+  language="typescript"
+  showCopyButton={true}
+/>
+
+## Basic Usage
+
+The most common use case is a simple process flow with a fork that rejoins. The component accepts a `nodes` prop with a `graph` array that defines the flow structure.
+
+<SplitPreview
+  code={DocumentationBasicFlowDiagramSrc}
+  language="typescript"
+  alwaysStacked={true}
+>
+  <DocumentationBasicFlowDiagram client:load />
+</SplitPreview>
+
+## Custom Node Content
+
+You can add custom React components inside nodes to create rich, interactive diagrams:
+
+<SplitPreview
+  code={DocumentationCustomFlowDiagramSrc}
+  language="typescript"
+  alwaysStacked={true}
+>
+  <DocumentationCustomFlowDiagram client:load />
+</SplitPreview>

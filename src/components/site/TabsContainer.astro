@@ -1,0 +1,121 @@
+---
+// @ts-nocheck
+import PropsPanel from './PropsPanel.astro';
+import SourceCodeSection from './SourceCodeSection.astro';
+import CodePreview from './CodePreview.astro';
+import type { CollectionEntry } from 'astro:content';
+import type { ComponentProp } from '../types';
+
+interface Props {
+  post: CollectionEntry<"components">;
+  propsList: ComponentProp[];
+  componentCode: string;
+  slug: string;
+  Content: any;
+}
+
+const { post, propsList, componentCode, slug, Content } = Astro.props;
+---
+
+<div class="mb-8 ">
+  <div class="tabs-container ">
+    <div class="tabs-header bg-card text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg  mb-4">
+      <button
+        class="tab-button active data-[active=true]:bg-background dark:data-[active=true]:text-foreground dark:data-[active=true]:border-input/30 dark:data-[active=true]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 data-[active=true]:shadow-sm"
+        data-tab="about"
+        data-active="true"
+      >
+        About
+      </button>
+
+      <button
+        class="tab-button data-[active=true]:bg-background dark:data-[active=true]:text-foreground dark:data-[active=true]:border-input/30 dark:data-[active=true]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 data-[active=true]:shadow-sm"
+        data-tab="code"
+        data-active="false"
+      >
+        Code
+      </button>
+    </div>
+
+    <div class="tab-content active space-y-6" data-tab-content="about">
+
+
+      <div class="prose mdx-content">
+        <Content />
+      </div>
+    </div>
+
+
+
+    <div class="tab-content hidden" data-tab-content="code">
+      <SourceCodeSection
+        componentCode={componentCode}
+        dependencies={post.data.dependencies}
+        files={post.data.files}
+      />
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  function setupTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    function setActiveTab(tabName) {
+      // Update button states
+      tabButtons.forEach(button => {
+        const isActive = button.getAttribute('data-tab') === tabName;
+        button.setAttribute('data-active', isActive.toString());
+        if (isActive) {
+          button.classList.add('active');
+        } else {
+          button.classList.remove('active');
+        }
+      });
+
+      // Update content visibility
+      tabContents.forEach(content => {
+        if (content.getAttribute('data-tab-content') === tabName) {
+          content.classList.remove('hidden');
+          content.classList.add('active');
+        } else {
+          content.classList.add('hidden');
+          content.classList.remove('active');
+        }
+      });
+
+      // Initialize syntax highlighting when code tab is shown
+      if (tabName === 'code' && typeof window.Prism !== 'undefined') {
+        setTimeout(() => {
+          window.Prism.highlightAll();
+        }, 10);
+      }
+    }
+
+    // Add click handlers to tab buttons
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabName = button.getAttribute('data-tab');
+        if (tabName) {
+          setActiveTab(tabName);
+        }
+      });
+    });
+  }
+
+  // Initialize tabs on page load
+  document.addEventListener('astro:page-load', setupTabs);
+
+  // Initial setup
+  setupTabs();
+</script>
+
+<style>
+  .tab-content {
+    transition: opacity 0.2s ease;
+  }
+  .tab-content.hidden {
+    display: none;
+  }
+</style>

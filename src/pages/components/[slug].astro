@@ -1,0 +1,95 @@
+---
+import { getCollection, getEntry, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import ComponentRenderer from "../../components/site/ComponentRenderer.astro";
+import ComponentHeader from "../../components/site/ComponentHeader.astro";
+import TabsContainer from "../../components/site/TabsContainer.astro";
+import { extractComponentProps } from "../../utils/extractComponentProps";
+import { fade } from 'astro:transitions';
+import CodePreview from "../../components/site/CodePreview.astro";
+
+export async function getStaticPaths() {
+  const components = await getCollection("components");
+  return components.map(component => ({
+    params: { slug: component.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+if (slug === undefined) {
+  return Astro.redirect("/404");
+}
+const post = await getEntry("components", slug);
+if (post === undefined) {
+  return Astro.redirect("/404");
+}
+
+const { Content } = await render(post);
+
+// Generate install command based on slug
+const installCommand = `npx shadcn@latest add https://www.compjoenents.com/r/${slug}`;
+
+let componentCode = "";
+try {
+  const comps = import.meta.glob('/src/components/*.astro', { query: '?raw', import: 'default' });
+  // Use componentPath if available, otherwise try to infer from slug
+  const componentPathToUse = post.data.componentPath || slug;
+  const path = `/src/components/${componentPathToUse}.astro`;
+  if (path in comps) componentCode = (await comps[path]()) as string;
+} catch {
+  componentCode = "// Component source code not available";
+}
+const propsList = extractComponentProps(componentCode, post.data.defaultProps);
+---
+
+<Layout title={`${post.data.title} | Components`}>
+  <ComponentRenderer component={post} />
+
+  <div
+  transition:animate={fade({ duration: '0.5s'})}
+    class="max-w-screen-lg mx-auto py-8"
+  >
+  <div>
+    <ComponentHeader
+      title={post.data.title}
+      description={post.data.description}
+      language={post.data.language}
+      categories={post.data.categories}
+      type={post.data.type}
+    />
+    <div class="mb-8">
+
+        <CodePreview
+          code={installCommand}
+          language="bash"
+          showCopyButton={true}
+        />
+      </div>
+    <TabsContainer
+      post={post}
+      propsList={propsList}
+      componentCode={componentCode}
+      slug={post.slug}
+      Content={Content}
+    />
+  </div>
+
+
+
+  <script is:inline data-astro-rerun>
+    if (typeof Prism !== "undefined") {
+      Prism.highlightAll();
+    }
+
+    window.updateComponentWithProps = function(componentProps) {
+      const componentInstance = document.querySelector('.component-instance');
+      if (!componentInstance) return;
+
+      const component = componentInstance.firstElementChild;
+      if (!component) return;
+
+      // Apply props to component (implementation to be added)
+      console.log('Updating component with props:', componentProps);
+    };
+  </script>
+</Layout>

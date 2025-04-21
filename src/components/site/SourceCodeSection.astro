@@ -1,0 +1,196 @@
+---
+import CodePreview from './CodePreview.astro';
+import path from 'path';
+
+interface Props {
+  componentCode?: string;
+  dependencies?: string[];
+  files?: { path: string; type: string; target?: string }[];
+}
+
+const { componentCode, dependencies = [], files = [] } = Astro.props;
+
+// Function to determine language based on file extension
+function getLanguageFromPath(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  const langMap: Record<string, string> = {
+    '.tsx': 'typescript',
+    '.ts': 'typescript',
+    '.jsx': 'javascript',
+    '.js': 'javascript',
+    '.astro': 'astro',
+    '.vue': 'vue',
+    '.html': 'html',
+    '.css': 'css',
+    '.scss': 'scss',
+    '.less': 'less',
+    '.md': 'markdown',
+    '.mdx': 'markdown'
+  };
+  return langMap[ext] || 'plaintext';
+}
+
+// Read file contents
+const fileContents = new Map<string, string>();
+
+if (files && files.length > 0) {
+  // Use Vite's import.meta.glob to read file contents
+  // We need to use multiple patterns to cover different possible locations
+  const srcFiles = import.meta.glob('/src/**/*', { query: '?raw', import: 'default', eager: true });
+  const rootFiles = import.meta.glob('/**/*', { query: '?raw', import: 'default', eager: true });
+  const allFiles = { ...srcFiles, ...rootFiles };
+
+  for (const file of files) {
+    try {
+      // Clean up the path
+      const cleanPath = file.path.trim().replace(/^["\']/g, '').replace(/["\']/g, '');
+
+      // Normalize path to ensure it starts with a slash
+      const normalizedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+
+      // Try different path variations
+      const possiblePaths = [
+        normalizedPath,
+        `/src${normalizedPath}`,
+        normalizedPath.replace(/^\/src\//, '/'),
+        cleanPath,
+        `src/${cleanPath}`,
+        cleanPath.replace(/^src\//, '')
+      ];
+
+      let content = null;
+      let foundPath = null;
+
+      for (const tryPath of possiblePaths) {
+        if (tryPath in allFiles) {
+          content = allFiles[tryPath] as string;
+          foundPath = tryPath;
+          break;
+        }
+      }
+
+      if (content) {
+        fileContents.set(file.path, content);
+        console.log(`Found file at: ${foundPath}`);
+      } else {
+        // Try to read the file directly using fetch if it's not found via import.meta.glob
+        try {
+          const filePath = cleanPath.startsWith('/') ? cleanPath.substring(1) : cleanPath;
+          const fileUrl = `/${filePath}`;
+
+          // We'll use a client-side fetch in a script to try to load the file
+          // For now, show a placeholder
+          fileContents.set(file.path, `// Loading file: ${file.path}...`);
+
+          // Store the file path for client-side loading
+          console.log(`Will try to fetch file from: ${fileUrl}`);
+        } catch (fetchError: any) {
+          fileContents.set(file.path, `// File not found: ${file.path}\n// Tried paths: ${possiblePaths.join(', ')}`);
+          console.error(`File not found: ${file.path}. Tried paths: ${possiblePaths.join(', ')}`);
+        }
+      }
+    } catch (error: any) {
+      fileContents.set(file.path, `// Error loading file: ${error?.message || 'Unknown error'}`);
+      console.error(`Error loading file ${file.path}:`, error);
+    }
+  }
+}
+---
+
+<div>
+  {dependencies && dependencies.length > 0 && (
+    <div class="mb-4">
+      <h3 class="text-sm font-medium mb-2">Dependencies</h3>
+      <div class="flex flex-wrap gap-2">
+        {dependencies.map(dep => (
+          <div class="text-xs px-2 py-1 rounded bg-muted text-muted-foreground font-mono">
+            {dep}
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {/* Show files from the files array if available */}
+  {files && files.length > 0 ? (
+    <div class="space-y-6">
+      {files.map((file) => {
+        // Get a clean file name for display
+        const fileName = file.path.split('/').pop() || file.path;
+        return (
+          <div class="mb-6">
+            <CodePreview
+              code={fileContents.get(file.path) || `// File not found: ${file.path}`}
+              language={getLanguageFromPath(file.path)}
+              title={fileName}
+            />
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    /* Fallback to componentCode if no files are provided */
+    componentCode && (
+      <CodePreview
+        code={componentCode}
+        language="typescript"
+        title="Component Source"
+      />
+    )
+  )}
+</div>
+
+<script is:inline>
+  document.addEventListener('astro:page-load', () => {
+    if (typeof Prism !== 'undefined') {
+      setTimeout(() => {
+        const copyButtons = document.querySelectorAll('.copy-button');
+        copyButtons.forEach(button => {
+          if (button instanceof HTMLElement) {
+            const existingListener = button.getAttribute('data-has-listener');
+            if (!existingListener) {
+              button.setAttribute('data-has-listener', 'true');
+            }
+          }
+        });
+      }, 0);
+    }
+
+    // Try to fetch any files that weren't found during server-side rendering
+    const codeBlocks = document.querySelectorAll('pre code');
+    codeBlocks.forEach(block => {
+      const content = block.textContent || '';
+      if (content.startsWith('// Loading file:')) {
+        const filePath = content.match(/Loading file: (.+)\.\.\./)?.[1];
+        if (filePath) {
+          const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+          fetch(`/${normalizedPath}`)
+            .then(response => {
+              if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+              return response.text();
+            })
+            .then(fileContent => {
+              // Update the code block with the fetched content
+              block.textContent = fileContent;
+              // Re-highlight the code
+              if (typeof Prism !== 'undefined') {
+                Prism.highlightElement(block);
+              }
+              // Update the copy button data
+              const codePreview = block.closest('.code-preview');
+              const copyButton = codePreview?.querySelector('.copy-button');
+              if (copyButton instanceof HTMLElement) {
+                copyButton.setAttribute('data-code', fileContent);
+              }
+            })
+            .catch(error => {
+              block.textContent = `// Error fetching file: ${filePath}\n// ${error.message}`;
+              if (typeof Prism !== 'undefined') {
+                Prism.highlightElement(block);
+              }
+            });
+        }
+      }
+    });
+  });
+</script>

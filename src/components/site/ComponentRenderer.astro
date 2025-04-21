@@ -1,0 +1,54 @@
+---
+import { components, getFilePathForLanguage } from "../../utils/index";
+import type { CollectionEntry } from "astro:content";
+import stringHash from "string-hash";
+import { Icon } from 'astro-icon/components';
+import path from 'path';
+
+interface Props {
+  component: CollectionEntry<"components">;
+  showLang?: boolean;
+}
+
+const { component, showLang = false } = Astro.props;
+const { defaultProps, language, files } = component.data;
+
+// Get component path from files array based on language
+let componentPath = component.data.componentPath;
+if (!componentPath && files && files.length > 0) {
+  const filePath = getFilePathForLanguage(files, language);
+  if (filePath) {
+    // Extract the component name from the file path
+    const fileName = path.basename(filePath, path.extname(filePath));
+    componentPath = fileName;
+  }
+}
+
+// Ensure we have a component path
+if (!componentPath) {
+  throw new Error(`No component path found for ${component.slug}`);
+}
+
+const Component = components[componentPath];
+if (!Component) throw new Error(`Component "${componentPath}" not found`);
+const componentId = stringHash(component.slug).toString();
+
+// No custom animations needed here as we're using the JS-based transitions
+---
+
+
+<div
+  id={`card-${componentId}`}
+  data-is-preview={Astro.url.pathname.includes('/components/')}
+  class="p-16 flex items-center justify-center bg-background border-border border-1  rounded-xl overflow-clip w-full relative group"
+>
+  <div class="component-content">
+    <Component {...defaultProps} />
+  </div>
+
+  {showLang && language && (
+    <div class="absolute bottom-3 right-3 text-foreground/50">
+      <Icon name={language} width="24" height="24" />
+    </div>
+  )}
+</div>

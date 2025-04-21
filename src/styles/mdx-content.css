@@ -1,0 +1,95 @@
+/* MDX Content Specific Styles */
+
+/* Override Tailwind's reset for lists in MDX content */
+.mdx-content ul {
+  list-style-type: disc !important;
+  margin-left: 1.5em !important;
+  margin-top: 1em !important;
+  margin-bottom: 1em !important;
+}
+
+.mdx-content ol {
+  list-style-type: decimal !important;
+  margin-left: 1.5em !important;
+  margin-top: 1em !important;
+  margin-bottom: 1em !important;
+}
+
+.mdx-content li {
+  display: list-item !important;
+  margin-bottom: 0.5em !important;
+}
+
+.mdx-content li::marker {
+  color: var(--foreground) !important;
+}
+
+.mdx-content li > ul,
+.mdx-content li > ol {
+  margin-top: 0.5em !important;
+}
+
+/* Nested lists */
+.mdx-content ul ul {
+  list-style-type: circle !important;
+}
+
+.mdx-content ul ul ul {
+  list-style-type: square !important;
+}
+
+/* Other MDX content styles */
+.mdx-content h1,
+.mdx-content h2,
+.mdx-content h3,
+.mdx-content h4,
+.mdx-content h5,
+.mdx-content h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.mdx-content h1 {
+  font-size: 2.25em;
+}
+
+.mdx-content h2 {
+  font-size: 1.5em;
+}
+
+.mdx-content h3 {
+  font-size: 1.25em;
+}
+
+.mdx-content p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+.mdx-content a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.mdx-content blockquote {
+  border-left: 4px solid var(--border);
+  padding-left: 1em;
+  font-style: italic;
+  margin: 1.25em 0;
+}
+
+.mdx-content code {
+  font-family: monospace;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.mdx-content pre {
+  overflow-x: auto;
+  padding: 1em;
+  border-radius: 0.375rem;
+  margin: 1.25em 0;
+}

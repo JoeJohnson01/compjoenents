@@ -1,0 +1,61 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "compjoenents",
+  "homepage": "https://www.compjoenents.com",
+  "items": [
+    {
+      "name": "flow-diagram",
+      "type": "registry:component",
+      "title": "Flow Diagram",
+      "description": "A responsive flow diagram component",
+      "author": "Joe Johnson <01johnson.joe@gmail.com>",
+      "dependencies": [
+        "react-flow-renderer"
+      ],
+      "categories": [
+        "charts",
+        "diagrams"
+      ],
+      "docs": "www.compjoenents.com/r/flow-diagram",
+      "installCommand": "npx shadcn@latest add https://www.compjoenents.com/r/flow-diagram",
+      "defaultProps": {
+        "nodes": {
+          "graph": [
+            "Start Process",
+            "Initial Setup",
+            "Data Validation",
+            [
+              [
+                "Task A1",
+                [
+                  [
+                    "SubTask A2.1"
+                  ],
+                  [
+                    "SubTask A2.2",
+                    "SubTask A2.3"
+                  ]
+                ],
+                "Task A3"
+              ],
+              [
+                "Task B1"
+              ],
+              [
+                "Task C1",
+                "Task C2"
+              ]
+            ]
+          ]
+        }
+      },
+      "language": "react",
+      "files": [
+        {
+          "path": "src/components/showcase/Flow.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}

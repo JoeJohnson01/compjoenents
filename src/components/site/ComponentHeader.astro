@@ -1,0 +1,55 @@
+---
+import LanguageBadge from './LanguageBadge.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  language?: "astro" | "react" | "vue" | "html";
+  categories?: string[];
+  type?: string;
+}
+
+const { title, description, language, categories = [], type } = Astro.props;
+
+// Function to capitalize first letter
+function capitalizeFirstLetter(string: string): string {
+  if (!string) return '';
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Get the type without the registry: prefix and capitalize it
+let displayType = '';
+if (type) {
+  displayType = capitalizeFirstLetter(type.replace('registry:', ''));
+}
+---
+
+<div class="mb-6 z-20">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+    <div class="flex items-center gap-3">
+      
+      <h1 class="text-3xl font-bold">{title}</h1>
+    </div>
+    <div class="flex items-center space-x-3 my-auto">
+      {type && (
+        <div class="inline-flex items-center gap-2 px-3 py-2.5 rounded-md bg-primary/10 text-foreground text-sm my-auto">
+          <span class="font-medium">{displayType}</span>
+        </div>
+      )}
+    {language && <div class="flex items-center"><LanguageBadge language={language} /></div>}
+    </div>
+
+  </div>
+
+  {categories && categories.length > 0 && (
+    <div class="flex gap-2 my-2">
+      {categories.map(category => (
+        <div class="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
+          {category}
+        </div>
+      ))}
+    </div>
+  )}
+
+  <p class="text-lg text-muted-foreground">{description}</p>
+</div>

@@ -1,0 +1,24 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  language: "astro" | "react" | "vue" | "html";
+}
+
+const { language } = Astro.props;
+
+// Language display names
+const languageNames = {
+  astro: "Astro",
+  react: "React",
+  vue: "Vue",
+  html: "HTML"
+};
+---
+
+<div class="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-primary/10 text-foreground text-sm ">
+  <span class="text-foreground/70 shrink-0 mr-1">
+    <Icon name={language} width="24" height="24" />
+  </span>
+  <span class="font-medium">{languageNames[language]}</span>
+</div>
