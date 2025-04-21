@@ -7,11 +7,9 @@
       "name": "flow-diagram",
       "type": "registry:component",
       "title": "Flow Diagram",
-      "description": "A responsive flow diagram component",
+      "description": "A responsive flow diagram component for visualizing processes and workflows",
       "author": "Joe Johnson <01johnson.joe@gmail.com>",
-      "dependencies": [
-        "react-flow-renderer"
-      ],
+      "dependencies": [],
       "categories": [
         "charts",
         "diagrams"
@@ -52,7 +50,7 @@
       "language": "react",
       "files": [
         {
-          "path": "src/components/showcase/Flow.tsx",
+          "path": "src/components/flow-diagram.tsx",
           "type": "registry:component"
         }
       ]
