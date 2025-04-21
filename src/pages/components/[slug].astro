@@ -27,7 +27,7 @@ if (post === undefined) {
 const { Content } = await render(post);
 
 // Generate install command based on slug
-const installCommand = `npx shadcn@latest add https://www.compjoenents.com/r/${slug}`;
+const installCommand = `npx shadcn@latest add https://www.compjoenents.com/r/${slug}.json`;
 
 let componentCode = "";
 try {
